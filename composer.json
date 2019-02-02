@@ -1,0 +1,27 @@
+{
+    "name": "sherifai/clearcut",
+    "description": "Laravel package for logging Http request/response in the database",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "sherif",
+            "email": "sherif.alaa55@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "SherifAI\\ClearCut\\": "src/"
+        }
+    },
+    "require": {
+        "webpatser/laravel-uuid": "^2.0"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "SherifAI\\ClearCut\\Providers\\ClearCutServiceProvider"
+            ]
+        }
+    }
+}
