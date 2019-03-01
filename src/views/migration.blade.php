@@ -12,6 +12,7 @@ class SetupRequestLogsTable extends Migration {
         // Creates the request logs table
         Schema::create(\Config::get('clearcut.table_name'), function ($table) {
             $table->increments('id');
+            $table->string("path");
             $table->string("uuid");
             $table->text("payload");
             $table->text("request_headers");
