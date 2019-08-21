@@ -19,7 +19,8 @@ class ProcessRequest implements ShouldQueue
     private $method;
     private $starts_at;
     private $ends_at;
-    private $response;
+    private $responseContent;
+    private $responseStatus;
     private $uuid;
     private $path;
     private $wantsJson;
@@ -31,14 +32,15 @@ class ProcessRequest implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($payload, $headers, $method, $starts_at, $ends_at, $response, $uuid, $path, $wantsJson)
+    public function __construct($payload, $headers, $method, $starts_at, $ends_at, $responseContent, $responseStatus, $uuid, $path, $wantsJson)
     {
         $this->payload = $payload;
         $this->headers = $headers;
         $this->method = $method;
         $this->starts_at = $starts_at;
         $this->ends_at = $ends_at;
-        $this->response = $response;
+        $this->responseContent = $responseContent;
+        $this->responseStatus = $responseStatus;
         $this->uuid = $uuid;
         $this->path = $path;
         $this->wantsJson = $wantsJson;
@@ -51,14 +53,12 @@ class ProcessRequest implements ShouldQueue
      */
     public function handle()
     {
-        if ($this->skippedUrl($this->path) || $this->skippedMethod($this->method)) {
-            return $response;
-        }
+        if (!$this->skippedUrl($this->path) && !$this->skippedMethod($this->method)) {
+            $log = $this->logToDB($this->payload);
 
-        $log = $this->logToDB($this->payload, $this->response);
-
-        if (RequestLog::count() >= Config::get("clearcut.dump_every")) {
-            $this->dumpDb();
+            if (RequestLog::count() >= Config::get("clearcut.dump_every")) {
+                $this->dumpDb();
+            }
         }
     }
 
@@ -79,7 +79,7 @@ class ProcessRequest implements ShouldQueue
         return $payload;
     }
 
-    private function logToDB($payload, $response)
+    private function logToDB($payload)
     {
         $payload = $this->hideSensetiveData($payload);
         
@@ -90,11 +90,11 @@ class ProcessRequest implements ShouldQueue
         $log->request_headers = json_encode($this->headers);
         $log->method = $this->method;
         
-        if (strlen($response->getContent()) < 20000 || $this->wantsJson) {
-            $log->response = $response->getContent();
+        if (strlen($this->responseContent) < 20000 || $this->wantsJson) {
+            $log->response = $this->responseContent;
         }
 
-        $log->response_status = $response->status();
+        $log->response_status = $this->responseStatus;
         $log->uuid = $this->uuid;
         $log->path = $this->path;
         $log->save();
