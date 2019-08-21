@@ -21,7 +21,7 @@ class LogRequests
      */
     public function handle($request, Closure $next, $guard = null)
     {
-        if (env('CLEARCUT_ENABLED')) {
+        if (Config::get('clearcut.enabled')) {
             $request->starts_at = time();
 
             $response = $next($request);
