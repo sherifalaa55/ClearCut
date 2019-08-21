@@ -16,7 +16,8 @@
     },
     "require": {
         "webpatser/laravel-uuid": "^2.0",
-        "spatie/db-dumper": "^2.0"
+        "spatie/db-dumper": "^2.0",
+        "league/csv": "^9.0"
     },
     "extra": {
         "laravel": {
