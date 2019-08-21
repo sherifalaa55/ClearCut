@@ -10,7 +10,6 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
-use SherifAI\ClearCut\Factories\DumperFactory;
 use SherifAI\ClearCut\RequestLog;
 
 class ProcessRequest implements ShouldQueue
@@ -123,22 +122,18 @@ class ProcessRequest implements ShouldQueue
 
     private function dumpDb()
     {
-        $dumper = DumperFactory::getDumper(Config::get("database.default"));
+        $logs = RequestLog::orderBy("created_at", "ASC")->take(Config::get('clearcut.dump_every'))->get();
 
-        $date = date("Ymdhis");
+        $csv = \League\Csv\Writer::createFromFileObject(new \SplTempFileObject());
 
-        $dump_name = "dump-{$date}.sql";
+        $csv->insertOne(\Schema::getColumnListing(Config::get('clearcut.table_name')));
 
-        $dumper->setDbName(env("DB_DATABASE"))
-            ->setUserName(env("DB_USERNAME"))
-            ->setPassword(env("DB_PASSWORD"))
-            ->includeTables([Config::get("clearcut.table_name")])
-            ->dumpToFile($dump_name);
+        foreach ($logs as $log) {
+            $csv->insertOne($log->toArray());
+        }
 
-        RequestLog::truncate();
+        Storage::disk(Config::get("clearcut.storage_disk"))->put("logs_" . date("Y_m_d_His") . ".csv", $csv->getContent());
 
-        Storage::disk(Config::get("clearcut.storage_disk"))->put("clearcut/{$dump_name}", file_get_contents($dump_name));
-
-        unlink($dump_name);
+        RequestLog::orderBy("created_at", "ASC")->take(Config::get('clearcut.dump_every'))->delete();
     }
 }

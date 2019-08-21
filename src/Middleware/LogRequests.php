@@ -21,19 +21,23 @@ class LogRequests
      */
     public function handle($request, Closure $next, $guard = null)
     {
-        $request->starts_at = time();
+        if (env('CLEARCUT_ENABLED')) {
+            $request->starts_at = time();
 
-        $response = $next($request);
+            $response = $next($request);
 
-        $request->ends_at = time();
+            $request->ends_at = time();
 
-        $uuid = (string)\Webpatser\Uuid\Uuid::generate();
+            $uuid = (string)\Webpatser\Uuid\Uuid::generate();
 
-        ProcessRequest::dispatch($request->all(), $request->headers->all(), $request->method(), $request->starts_at, $request->ends_at, $response, $uuid, $request->path(), $request->wantsJson())
-            ->onQueue(Config::get("clearcut.queue_name"));
+            ProcessRequest::dispatch($request->all(), $request->headers->all(), $request->method(), $request->starts_at, $request->ends_at, $response, $uuid, $request->path(), $request->wantsJson())
+                ->onQueue(Config::get("clearcut.queue_name"));
 
-        $response->header("X-Request-Id", $uuid);
+            $response->header("X-Request-Id", $uuid);
+            
+            return $response;
+        }
 
-        return $response;
+        return $next($request);
     }
 }

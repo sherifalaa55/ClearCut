@@ -43,6 +43,8 @@ The most important configurations however are
 
 3. `'queue_name' => 'clearcut'` which is the default queue for processing log job
 
+4. `'enabled' => true` which determines of the package is working and storing request logs
+
 ## Contribution
 Support follows PSR-2 PHP coding standards.
 
