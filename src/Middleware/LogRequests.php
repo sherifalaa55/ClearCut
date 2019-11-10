@@ -30,7 +30,7 @@ class LogRequests
 
             $uuid = (string)\Webpatser\Uuid\Uuid::generate();
 
-            ProcessRequest::dispatch($request->all(), $request->headers->all(), $request->method(), $request->starts_at, $request->ends_at, $response->getContent(), $response->status(), $uuid, $request->path(), $request->wantsJson())
+            ProcessRequest::dispatch($request->input(), $request->headers->all(), $request->method(), $request->starts_at, $request->ends_at, $response->getContent(), $response->status(), $uuid, $request->path(), $request->wantsJson())
                 ->onQueue(Config::get("clearcut.queue_name"));
 
             $response->header("X-Request-Id", $uuid);
